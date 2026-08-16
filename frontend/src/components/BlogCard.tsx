@@ -23,7 +23,7 @@ export const BlogCard = ({
                     <Circle />
                 </div>
                 <div className="pl-2 font-thin text-slate-500 text-sm flex justify-center flex-col">
-                    {publishedDate}
+                    {formatDate(publishedDate)}
                 </div>
             </div>
             <div className="text-xl font-semibold pt-2">
@@ -43,6 +43,22 @@ export function Circle() {
     return <div className="h-1 w-1 rounded-full bg-slate-500">
 
     </div>
+}
+
+export function formatDate(date: string): string {
+    const d = new Date(date);
+    const day = d.getDate();
+    const ordinal = (n: number) => {
+        if (n > 3 && n < 21) return "th";
+        switch (n % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    };
+    const month = d.toLocaleString("en-US", { month: "short" });
+    return `${day}${ordinal(day)} ${month} ${d.getFullYear()}`;
 }
 
 export function Avatar({ name, size = "small" }: { name: string, size?: "small" | "big" }) {

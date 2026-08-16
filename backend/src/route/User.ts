@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { PrismaClient } from '@prisma/client/edge'
-import { withAccelerate } from '@prisma/extension-accelerate'
+import { PrismaClient } from '@prisma/client'
 import { sign } from 'hono/jwt'
 import { signupInput, signinInput } from "@100xdevs/medium-common";
+import { getEnv } from "../env";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -21,8 +21,8 @@ userRouter.post('/signup', async (c) => {
         })
     }
     const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
+        datasourceUrl: getEnv(c, "DATABASE_URL"),
+    })
 
     try {
         const user = await prisma.user.create({
@@ -34,7 +34,7 @@ userRouter.post('/signup', async (c) => {
         })
         const jwt = await sign({
             id: user.id
-        }, c.env.JWT_SECRET);
+        }, getEnv(c, "JWT_SECRET"));
 
         return c.text(jwt)
     } catch (e) {
@@ -56,8 +56,8 @@ userRouter.post('/signin', async (c) => {
     }
 
     const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
+        datasourceUrl: getEnv(c, "DATABASE_URL"),
+    })
 
     try {
         const user = await prisma.user.findFirst({
@@ -74,7 +74,7 @@ userRouter.post('/signin', async (c) => {
         }
         const jwt = await sign({
             id: user.id
-        }, c.env.JWT_SECRET);
+        }, getEnv(c, "JWT_SECRET"));
 
         return c.text(jwt)
     } catch (e) {

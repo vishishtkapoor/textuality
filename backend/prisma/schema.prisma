@@ -1,12 +1,12 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 
 generator client {
   provider = "prisma-client-js"
+  // "native" covers local dev; rhel-openssl-3.0.x is the engine for
+  // AWS Lambda (Node 20, Amazon Linux 2023, x86_64)
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -28,5 +28,6 @@ model Blog {
   content    String
   title       String
   published Boolean  @default(false)
+  createdAt DateTime @default(now())
   author    User @relation(fields: [authorId], references: [id])
 }

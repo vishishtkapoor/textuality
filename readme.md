@@ -1,6 +1,9 @@
 
 # Blogging App - Medium
 
+> **Live deployment:** the app now runs entirely on **AWS** (RDS + Lambda + API Gateway + S3/CloudFront).
+> See [`infra/README.md`](infra/README.md) for the one-command Terraform setup.
+
 ## Frontend
 
 ### React

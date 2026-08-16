@@ -1,0 +1,16 @@
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+*.tfvars
+!example.tfvars
+
+# Generated artifacts
+lambda.zip
+
+# Local tooling (e.g. downloaded terraform binary)
+bin/
+
+# Terraform plan artifacts
+tfplan
+*.tfplan

@@ -1,6 +1,6 @@
 import { Blog } from "../hooks"
 import { Appbar } from "./Appbar"
-import { Avatar } from "./BlogCard"
+import { Avatar, formatDate } from "./BlogCard"
 
 export const FullBlog = ({ blog }: { blog: Blog }) => {
     return <div>
@@ -12,7 +12,7 @@ export const FullBlog = ({ blog }: { blog: Blog }) => {
                         {blog.title}
                     </div>
                     <div className="text-slate-500 pt-2">
-                        Post on 2nd December 2023
+                        Post on {formatDate(blog.createdAt)}
                     </div>
                     <div className="pt-4">
                         {blog.content}

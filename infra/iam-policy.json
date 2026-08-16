@@ -1,0 +1,31 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Effect": "Allow", "Action": ["rds:*"], "Resource": "*" },
+    { "Effect": "Allow", "Action": ["lambda:*"], "Resource": "*" },
+    { "Effect": "Allow", "Action": ["apigateway:*"], "Resource": "*" },
+    { "Effect": "Allow", "Action": ["s3:*"], "Resource": "*" },
+    { "Effect": "Allow", "Action": ["cloudfront:*"], "Resource": "*" },
+    { "Effect": "Allow", "Action": ["logs:*", "cloudwatch:*"], "Resource": "*" },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRoles",
+        "iam:PassRole", "iam:AttachRolePolicy", "iam:DetachRolePolicy",
+        "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+        "iam:ListRolePolicies", "iam:ListAttachedRolePolicies"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup",
+        "ec2:DescribeSecurityGroups", "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupEgress"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
