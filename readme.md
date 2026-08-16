@@ -1,128 +1,118 @@
+# Textuality ✍️
 
-# Blogging App - Medium
+A Medium-style blogging platform. Sign up, write articles, publish them, and read what others have written — all running serverless on **AWS**.
 
-> **Live deployment:** the app now runs entirely on **AWS** (RDS + Lambda + API Gateway + S3/CloudFront).
-> See [`infra/README.md`](infra/README.md) for the one-command Terraform setup.
+> **Live app:** https://dhn5hiatd0jpf.cloudfront.net
 
-## Frontend
+---
 
-### React
-A powerful library for building dynamic and responsive user interfaces.
+## ✨ Features
 
-### Vite
-A fast build tool that enhances development with instant hot module replacement.
+- **User accounts** — sign up / sign in with JWT authentication
+- **Skip login** — browse the public feed without an account
+- **Write & publish** — a clean editor for your posts
+- **Publish guard** — logged-out users get a friendly "log in first" prompt instead of the editor
+- **Real publication dates** — every post shows when it was published
+- **Reading time** — estimated minutes per article
+- **Responsive design** — works on desktop and mobile
 
-### Skeleton Loading
-Improves user experience by displaying a placeholder while content is loading.
+## 🏗️ Architecture
 
-## Backend
+The app is fully hosted on AWS and split into three parts:
 
-### Cloudflare Workers
-A serverless platform for building backend logic at the edge, ensuring low latency.
+```
+┌────────────────────┐        HTTPS + JSON        ┌───────────────────────────┐
+│  Frontend          │  ───────────────────────►  │  Backend                  │
+│  React + Vite      │   /api/v1/...              │  Hono on AWS Lambda       │
+│  (S3 + CloudFront) │   JWT in Authorization     │  + API Gateway            │
+└────────────────────┘   header                   └────────────┬──────────────┘
+                                                               │
+                                                    ┌──────────▼───────────────┐
+                                                    │  PostgreSQL (AWS RDS,   │
+                                                    │  via Prisma ORM)         │
+                                                    └──────────────────────────┘
+```
 
-### TypeScript
-A statically typed superset of JavaScript that improves code reliability and maintainability.
+| Layer | Technology | Where it runs |
+|---|---|---|
+| **Frontend** | React 18, Vite, Tailwind CSS, React Router | S3 bucket + CloudFront CDN |
+| **Backend API** | Hono (Node.js), Zod validation, JWT auth | AWS Lambda + API Gateway (HTTP API) |
+| **Database** | PostgreSQL via Prisma ORM | AWS RDS (db.t4g.micro) |
+| **Infrastructure** | Terraform | `infra/` directory |
 
-### Prisma
-An ORM that simplifies database interactions and includes connection pooling.
+The frontend never talks to the database — every request goes through the backend's REST API.
 
-### PostgreSQL
-A reliable and powerful open-source relational database.
+## 📁 Project structure
 
-### Zod
-A schema declaration and validation library providing type inference.
+```
+textuality/
+├── frontend/                 # React + Vite + Tailwind app
+│   └── src/
+│       ├── components/       # Appbar, BlogCard, FullBlog, Auth, ...
+│       ├── pages/            # Signup, Signin, Blogs (feed), Blog, Publish
+│       └── hooks/            # useBlog / useBlogs data fetching
+├── backend/                  # Hono API (runs on AWS Lambda)
+│   ├── src/
+│   │   ├── index.ts          # Hono app: /api/v1/user + /api/v1/blog routers
+│   │   ├── lambda.ts         # Lambda entry point (hono/aws-lambda adapter)
+│   │   └── route/            # User.ts (auth) + Blog.ts (CRUD)
+│   └── prisma/               # Schema + migrations
+└── infra/                    # Terraform stack + deploy scripts (see infra/README.md)
+```
 
-### JWT
-JSON Web Tokens for secure authentication, enabling stateless sessions.
+## 🚀 API overview
 
-## Project Setup
+Base URL: `https://iko8kowogg.execute-api.ap-south-1.amazonaws.com`
 
-### Bootstrapping the Project
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/v1/user/signup` | — | Create an account, returns a JWT |
+| POST | `/api/v1/user/signin` | — | Log in, returns a JWT |
+| GET | `/api/v1/blog/bulk` | public | List all posts with author names |
+| GET | `/api/v1/blog/:id` | public | Fetch a single post |
+| POST | `/api/v1/blog` | required | Publish a new post |
+| PUT | `/api/v1/blog` | required | Update a post |
 
-Vite makes it easy to create a React project.
+## 💻 Local development
 
 ```bash
-npm create vite@latest medium-project --template react
-cd medium-project
+# Backend (uses your AWS RDS database)
+cd backend
 npm install
+npm run dev            # starts a local server on :8787
+
+# Frontend
+cd frontend
+npm install
+npm run dev            # starts Vite on :5173
 ```
 
-### Setting Up the Backend with Cloudflare Workers
+Set `VITE_BACKEND_URL` when building if you want the frontend to point somewhere other than the deployed API.
 
-Cloudflare Workers allow you to write serverless functions that run on Cloudflare's edge network.
+## ☁️ Deployment (AWS)
+
+Everything is provisioned with Terraform — one command creates the RDS database, Lambda backend, API Gateway, S3 bucket, and CloudFront distribution. See **[`infra/README.md`](infra/README.md)** for the full step-by-step guide.
+
+Quick summary:
 
 ```bash
-npm install -g wrangler
-wrangler init
+cd infra
+./build-lambda.sh      # package the backend into lambda.zip
+terraform init && terraform apply
+DATABASE_URL="postgresql://postgres:<pw>@<rds-endpoint>:5432/medium" \
+  npx prisma migrate deploy   # from ../backend
+./deploy-frontend.sh   # build + upload the React app to S3/CloudFront
 ```
 
-Configure your `wrangler.toml` file with your Cloudflare account details.
+To tear everything down: `terraform destroy`.
 
-### Configuring Prisma and PostgreSQL
+## 🛠️ Tech highlights
 
-Prisma simplifies database management. Set up your PostgreSQL database and configure Prisma:
+- **React + Vite + Tailwind** — fast, typed, utility-first UI
+- **Hono** — lightweight, framework-agnostic HTTP framework (runs identically on Workers, Lambda, or Node)
+- **Prisma + PostgreSQL** — type-safe database access with migrations
+- **Zod** — shared runtime validation with TypeScript inference
+- **JWT** — stateless authentication
+- **Terraform** — infrastructure as code; the whole AWS stack is reproducible
 
-```bash
-npm install prisma --save-dev
-npx prisma init
-```
-
-Update the `DATABASE_URL` in your `.env` file with your PostgreSQL connection string. Define your database schema in `prisma/schema.prisma` and run migrations:
-
-```bash
-npx prisma migrate dev --name init
-```
-
-### Integrating TypeScript and Zod
-
-TypeScript enhances code reliability, and Zod complements it by providing runtime validation. Install the necessary packages:
-
-```bash
-npm install typescript Zod
-```
-
-Add a `tsconfig.json` file for TypeScript configuration, and use Zod to validate data structures.
-
-### Implementing Authentication with JWT
-
-JWTs provide secure authentication. Install the package:
-
-```bash
-npm install jsonwebtoken
-```
-
-Create utility functions for generating and verifying tokens, and set up authentication routes using Cloudflare Workers.
-
-## Deployment
-
-### Deploying Backend with Cloudflare Workers
-
-Deploy your backend code to Cloudflare Workers:
-
-```bash
-wrangler publish
-```
-
-### Deploying Frontend with Vercel
-
-Deploy your React app with Vercel:
-
-```bash
-npm install -g vercel
-vercel
-```
-
-Follow the prompts to deploy your app.
-
-## Conclusion
-
-Building a Medium-like blogging app from scratch is a rewarding experience. By using modern tools like React, Vite, Cloudflare Workers, TypeScript, Prisma, and PostgreSQL, you can create a robust and scalable application.
-
-A special thanks to Harkirat for his guidance throughout this journey.
-
-Check out the live app [here](#) and the GitHub repository [here](#). I hope this guide inspires you to build your own amazing applications!
-
-Happy coding! 🚀✨
-```
-
-You can replace the placeholders in the links (`[here](#)`) with the actual URLs when available.
+Happy writing! 🚀✨
