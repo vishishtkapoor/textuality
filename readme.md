@@ -16,6 +16,8 @@ A Medium-style blogging platform. Sign up, write articles, publish them, and rea
 - **Reading time** — estimated minutes per article
 - **Responsive design** — works on desktop and mobile
 
+> **📚 Learning the app?** Read [`docs/TECHNICAL_GUIDE.md`](docs/TECHNICAL_GUIDE.md) — a complete, interview-ready walkthrough of how every part works, the fundamentals of each technology, and likely interview questions with answers.
+
 ## 🏗️ Architecture
 
 The app is fully hosted on AWS and split into three parts:
